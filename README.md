@@ -1,1 +1,1 @@
-# ai-engineering-enablement-portal
+A Spring Boot application that lets developers submit engineering tasks such as code review requests, test generation requests, security reviews, architecture critiques, documentation questions, and incident summaries. The application routes those tasks through structured prompts, local AI models, retrieval, evaluation, human review gates, and audit logging.
