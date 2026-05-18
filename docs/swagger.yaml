@@ -1,0 +1,296 @@
+openapi: 3.0.3
+info:
+  title: AI Engineering Enablement Portal API
+  version: 1.1.0
+  description: API for task submission, local AI agent analysis, agent collaboration, human review, and audit-oriented task retrieval.
+servers:
+  - url: http://localhost:8080
+paths:
+  /tasks:
+    post:
+      summary: Create a task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskRequest'
+      responses:
+        '201':
+          description: Task created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    get:
+      summary: List tasks
+      parameters:
+        - name: page_number
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 25
+      responses:
+        '200':
+          description: Tasks listed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListTasksResponse'
+  /tasks/{task_id}:
+    get:
+      summary: Retrieve a task
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+      responses:
+        '200':
+          description: Task retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetrieveTaskResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /tasks/{task_id}/execution:
+    post:
+      summary: Execute first-pass routed agent analysis
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+      responses:
+        '200':
+          description: Task executed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationResponse'
+        '424':
+          $ref: '#/components/responses/DependencyFailure'
+  /tasks/{task_id}/analysis:
+    post:
+      summary: Re-analyze a task, optionally with agent collaboration
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReanalyzeTaskRequest'
+      responses:
+        '200':
+          description: Task re-analysis completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '424':
+          $ref: '#/components/responses/DependencyFailure'
+  /tasks/{task_id}/audit:
+    post:
+      summary: Record a human review decision
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuditTaskRequest'
+      responses:
+        '200':
+          description: Task audited
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationResponse'
+components:
+  parameters:
+    TaskId:
+      name: task_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  schemas:
+    CreateTaskRequest:
+      type: object
+      required: [task_id, data]
+      properties:
+        task_id:
+          type: string
+          format: uuid
+        data:
+          type: object
+          additionalProperties: true
+          example:
+            task_type: work_plan
+            prompt: Create an implementation plan for audit exports.
+    ReanalyzeTaskRequest:
+      type: object
+      properties:
+        agent_collaboration:
+          type: boolean
+          default: false
+    AuditTaskRequest:
+      type: object
+      required: [review_status, review_comments]
+      properties:
+        review_status:
+          type: string
+          enum: [approved, rejected, needs_changes]
+        review_comments:
+          type: string
+          minLength: 1
+          maxLength: 5000
+    OperationResponse:
+      type: object
+      required: [status, message, task_id]
+      properties:
+        status:
+          type: string
+          enum: [success]
+        message:
+          type: string
+        task_id:
+          type: string
+          format: uuid
+    RetrieveTaskResponse:
+      type: object
+      required: [status, data, message]
+      properties:
+        status:
+          type: string
+          enum: [success]
+        data:
+          $ref: '#/components/schemas/Task'
+        message:
+          type: string
+    ListTasksResponse:
+      type: object
+      required: [tasks, total_count, page_number, page_size]
+      properties:
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskSummary'
+        total_count:
+          type: integer
+        page_number:
+          type: integer
+        page_size:
+          type: integer
+    Task:
+      type: object
+      properties:
+        task_id:
+          type: string
+          format: uuid
+        task_status:
+          type: string
+          enum: [created, executing, completed, failed, pending_review, approved, rejected, needs_changes]
+        payload:
+          type: object
+          additionalProperties: true
+        result:
+          type: object
+          nullable: true
+          additionalProperties: true
+        agent_feedback:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentFeedback'
+        review:
+          type: object
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    TaskSummary:
+      type: object
+      properties:
+        task_id:
+          type: string
+          format: uuid
+        task_status:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    AgentFeedback:
+      type: object
+      properties:
+        analysis_run_id:
+          type: string
+          format: uuid
+        agent_role:
+          type: string
+          enum: [test_engineer, principal_engineer, security_engineer, product_owner]
+        agent_name:
+          type: string
+        phase:
+          type: string
+          enum: [initial_analysis, critique, response]
+        content:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [failure]
+        message:
+          type: string
+        error_code:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+  responses:
+    BadRequest:
+      description: Invalid input
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: Duplicate task or invalid state conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Task not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    DependencyFailure:
+      description: Local AI model or analysis dependency failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

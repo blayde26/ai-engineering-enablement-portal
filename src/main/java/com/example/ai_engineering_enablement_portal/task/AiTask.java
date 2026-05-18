@@ -1,13 +1,17 @@
 package com.example.ai_engineering_enablement_portal.task;
 
+import com.example.ai_engineering_enablement_portal.agent.AgentFeedback;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 public class AiTask {
     private final UUID taskId;
     private final Map<String, Object> payload;
+    private final List<AgentFeedback> agentFeedback = new ArrayList<>();
     private TaskStatus taskStatus;
     private Map<String, Object> result;
     private TaskReview review;
@@ -42,6 +46,10 @@ public class AiTask {
         return review;
     }
 
+    public List<AgentFeedback> agentFeedback() {
+        return List.copyOf(agentFeedback);
+    }
+
     public Instant createdAt() {
         return createdAt;
     }
@@ -64,6 +72,11 @@ public class AiTask {
     public void markFailed(Map<String, Object> result) {
         this.result = new LinkedHashMap<>(result);
         this.taskStatus = TaskStatus.FAILED;
+        touch();
+    }
+
+    public void recordAgentFeedback(AgentFeedback feedback) {
+        this.agentFeedback.add(feedback);
         touch();
     }
 

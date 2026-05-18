@@ -18,6 +18,7 @@ The API contract is documented in `docs/swagger.yaml`. The implemented task endp
 - `GET /tasks`
 - `GET /tasks/{task_id}`
 - `POST /tasks/{task_id}/execution`
+- `POST /tasks/{task_id}/analysis`
 - `POST /tasks/{task_id}/audit`
 
 For setup steps, example requests, supported capabilities, and troubleshooting, see `docs/local-running-and-capabilities.md`.
