@@ -116,6 +116,7 @@ public class TaskExecutionService {
             result.put("analysis_run_id", analysisRunId);
             result.put("agent_collaboration", agentCollaboration);
             result.put("agents", profiles.stream().map(AgentProfile::displayName).toList());
+            result.put("agent_ids", profiles.stream().map(AgentProfile::agentId).toList());
             result.put("feedback_count", generatedFeedback.size());
             result.put("retrieval_context", context);
             result.put("evaluation", evaluation);
@@ -151,7 +152,7 @@ public class TaskExecutionService {
         List<AgentFeedback> feedback = new ArrayList<>();
         for (AgentProfile profile : profiles) {
             List<AgentFeedback> feedbackForPrompt = phaseFeedback.stream()
-                    .filter(existing -> existing.agentRole() != profile.role())
+                    .filter(existing -> !existing.agentId().equals(profile.agentId()))
                     .toList();
             String prompt = template.render(
                     profile,
@@ -162,7 +163,7 @@ public class TaskExecutionService {
                     phaseInstruction);
             AgentFeedback agentFeedback = new AgentFeedback(
                     analysisRunId,
-                    profile.role(),
+                    profile.agentId(),
                     profile.displayName(),
                     phase,
                     aiModelService.generate(prompt),

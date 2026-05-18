@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public record AgentFeedback(
         @JsonProperty("analysis_run_id") UUID analysisRunId,
-        @JsonProperty("agent_role") AgentRole agentRole,
+        @JsonProperty("agent_id") String agentId,
         @JsonProperty("agent_name") String agentName,
         AgentFeedbackPhase phase,
         String content,

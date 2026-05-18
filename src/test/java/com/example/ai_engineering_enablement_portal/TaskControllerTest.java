@@ -140,4 +140,56 @@ class TaskControllerTest {
                 .expectBody()
                 .jsonPath("$.error_code").isEqualTo("TASK_NOT_FOUND");
     }
+
+    @Test
+    void createCustomAgentProfileAndTaskTypeRoute() {
+        webTestClient.post()
+                .uri("/agent-profiles")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("""
+                        {
+                          "agent_id": "release_manager",
+                          "display_name": "Release Manager",
+                          "system_prompt": "Focus on release sequencing, rollback readiness, and stakeholder communication."
+                        }
+                        """)
+                .exchange()
+                .expectStatus().isCreated()
+                .expectBody()
+                .jsonPath("$.agent_id").isEqualTo("release_manager")
+                .jsonPath("$.display_name").isEqualTo("Release Manager");
+
+        webTestClient.post()
+                .uri("/task-types")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("""
+                        {
+                          "task_type": "release_plan",
+                          "agent_ids": ["release_manager", "test_engineer"]
+                        }
+                        """)
+                .exchange()
+                .expectStatus().isCreated()
+                .expectBody()
+                .jsonPath("$.task_type").isEqualTo("release_plan")
+                .jsonPath("$.agent_ids[0]").isEqualTo("release_manager")
+                .jsonPath("$.agent_ids[1]").isEqualTo("test_engineer");
+    }
+
+    @Test
+    void createTaskTypeRouteRejectsUnknownAgent() {
+        webTestClient.post()
+                .uri("/task-types")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("""
+                        {
+                          "task_type": "unknown_route",
+                          "agent_ids": ["missing_agent"]
+                        }
+                        """)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody()
+                .jsonPath("$.error_code").isEqualTo("INVALID_INPUT");
+    }
 }

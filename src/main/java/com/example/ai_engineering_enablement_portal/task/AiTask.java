@@ -26,6 +26,25 @@ public class AiTask {
         this.updatedAt = this.createdAt;
     }
 
+    public AiTask(
+            UUID taskId,
+            Map<String, Object> payload,
+            TaskStatus taskStatus,
+            Map<String, Object> result,
+            TaskReview review,
+            List<AgentFeedback> agentFeedback,
+            Instant createdAt,
+            Instant updatedAt) {
+        this.taskId = taskId;
+        this.payload = new LinkedHashMap<>(payload);
+        this.taskStatus = taskStatus;
+        this.result = result == null ? null : new LinkedHashMap<>(result);
+        this.review = review;
+        this.agentFeedback.addAll(agentFeedback);
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
     public UUID taskId() {
         return taskId;
     }

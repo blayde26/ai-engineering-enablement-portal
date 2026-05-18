@@ -117,6 +117,64 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OperationResponse'
+  /agent-profiles:
+    get:
+      summary: List agent personas
+      responses:
+        '200':
+          description: Agent personas listed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AgentProfile'
+    post:
+      summary: Create or update an agent persona
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpsertAgentProfileRequest'
+      responses:
+        '201':
+          description: Agent persona saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentProfile'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /task-types:
+    get:
+      summary: List task type routing rules
+      responses:
+        '200':
+          description: Task type routes listed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskTypeRoute'
+    post:
+      summary: Create or update a task type routing rule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpsertTaskTypeRouteRequest'
+      responses:
+        '201':
+          description: Task type route saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskTypeRoute'
+        '400':
+          $ref: '#/components/responses/BadRequest'
 components:
   parameters:
     TaskId:
@@ -243,9 +301,8 @@ components:
         analysis_run_id:
           type: string
           format: uuid
-        agent_role:
+        agent_id:
           type: string
-          enum: [test_engineer, principal_engineer, security_engineer, product_owner]
         agent_name:
           type: string
         phase:
@@ -256,6 +313,44 @@ components:
         created_at:
           type: string
           format: date-time
+    AgentProfile:
+      type: object
+      required: [agent_id, display_name, system_prompt]
+      properties:
+        agent_id:
+          type: string
+          pattern: '^[a-z0-9_]{3,64}$'
+          example: release_manager
+        display_name:
+          type: string
+          maxLength: 120
+          example: Release Manager
+        system_prompt:
+          type: string
+          maxLength: 5000
+          example: Focus on release sequencing, rollback readiness, and stakeholder communication.
+    UpsertAgentProfileRequest:
+      allOf:
+        - $ref: '#/components/schemas/AgentProfile'
+    TaskTypeRoute:
+      type: object
+      required: [task_type, agent_ids]
+      properties:
+        task_type:
+          type: string
+          pattern: '^[a-z0-9_]{3,64}$'
+          example: release_plan
+        agent_ids:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items:
+            type: string
+            pattern: '^[a-z0-9_]{3,64}$'
+          example: [release_manager, test_engineer]
+    UpsertTaskTypeRouteRequest:
+      allOf:
+        - $ref: '#/components/schemas/TaskTypeRoute'
     ErrorResponse:
       type: object
       properties:
