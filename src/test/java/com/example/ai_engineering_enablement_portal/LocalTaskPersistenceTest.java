@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.example.ai_engineering_enablement_portal.agent.AgentFeedback;
 import com.example.ai_engineering_enablement_portal.agent.AgentFeedbackPhase;
-import com.example.ai_engineering_enablement_portal.agent.AgentRole;
 import com.example.ai_engineering_enablement_portal.task.AiTask;
 import com.example.ai_engineering_enablement_portal.task.Repository.InMemoryTaskRepository;
 import com.example.ai_engineering_enablement_portal.task.ReviewStatus;
@@ -34,7 +33,7 @@ class LocalTaskPersistenceTest {
         repository.create(task);
         task.recordAgentFeedback(new AgentFeedback(
                 analysisRunId,
-                AgentRole.PRINCIPAL_ENGINEER,
+                "principal_engineer",
                 "Principal Engineer",
                 AgentFeedbackPhase.INITIAL_ANALYSIS,
                 "Use a simple local file-backed store.",
@@ -51,7 +50,7 @@ class LocalTaskPersistenceTest {
         assertEquals("work_plan", reloaded.payload().get("task_type"));
         assertEquals(ReviewStatus.APPROVED, reloaded.review().reviewStatus());
         assertEquals(1, reloaded.agentFeedback().size());
-        assertEquals(AgentRole.PRINCIPAL_ENGINEER, reloaded.agentFeedback().getFirst().agentRole());
+        assertEquals("principal_engineer", reloaded.agentFeedback().getFirst().agentId());
         assertTrue(store.toFile().length() > 0);
     }
 }
