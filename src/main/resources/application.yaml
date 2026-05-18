@@ -9,6 +9,7 @@ ai:
 storage:
   local:
     task-file-path: data/tasks.json
+    agent-config-file-path: data/agent-routing.json
 management:
   endpoint:
     health:
