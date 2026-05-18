@@ -2,7 +2,6 @@ package com.example.ai_engineering_enablement_portal.task.Repository;
 
 import com.example.ai_engineering_enablement_portal.agent.AgentFeedback;
 import com.example.ai_engineering_enablement_portal.agent.AgentFeedbackPhase;
-import com.example.ai_engineering_enablement_portal.agent.AgentRole;
 import com.example.ai_engineering_enablement_portal.task.AiTask;
 import com.example.ai_engineering_enablement_portal.task.ReviewStatus;
 import com.example.ai_engineering_enablement_portal.task.TaskReview;
@@ -166,7 +165,7 @@ public class InMemoryTaskRepository implements TaskRepository {
 
     private record AgentFeedbackSnapshot(
             UUID analysisRunId,
-            String agentRole,
+            String agentId,
             String agentName,
             String phase,
             String content,
@@ -175,7 +174,7 @@ public class InMemoryTaskRepository implements TaskRepository {
         static AgentFeedbackSnapshot from(AgentFeedback feedback) {
             return new AgentFeedbackSnapshot(
                     feedback.analysisRunId(),
-                    feedback.agentRole().name(),
+                    feedback.agentId(),
                     feedback.agentName(),
                     feedback.phase().name(),
                     feedback.content(),
@@ -185,7 +184,7 @@ public class InMemoryTaskRepository implements TaskRepository {
         AgentFeedback toFeedback() {
             return new AgentFeedback(
                     analysisRunId,
-                    AgentRole.valueOf(agentRole),
+                    agentId,
                     agentName,
                     AgentFeedbackPhase.valueOf(phase),
                     content,
