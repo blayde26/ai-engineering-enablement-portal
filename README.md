@@ -10,6 +10,10 @@ Task execution calls an Ollama-compatible local model endpoint:
 
 Start Ollama locally and make sure the configured model is available before calling `POST /tasks/{task_id}/execution`. If the model is unavailable, the API records the task as failed and returns `424 DEPENDENCY_FAILURE`.
 
+## Local Persistence
+
+Tasks are saved to `data/tasks.json` by default so local task history survives application restarts. Override `storage.local.task-file-path` to store the file somewhere else.
+
 ## API
 
 The API contract is documented in `docs/swagger.yaml`. The implemented task endpoints are:
