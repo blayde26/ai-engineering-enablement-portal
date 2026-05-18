@@ -4,7 +4,7 @@
 
 AI Engineering Enablement Portal is a Spring Boot application for submitting engineering tasks and routing them through a structured AI review workflow. It supports task creation, task retrieval, execution through local AI agent profiles, lightweight retrieval, deterministic evaluation, agent collaboration, human review gates, and audit logging.
 
-The current implementation is intended for local development and early product validation. Task state, agent feedback, results, and human reviews are saved to a local JSON file so they survive application restarts. Retrieval context and audit events remain in memory for now.
+The current implementation is intended for local development and early product validation. Task state, agent feedback, results, human reviews, agent personas, and task type routing are saved to local JSON files so they survive application restarts. Retrieval context and audit events remain in memory for now.
 
 ## Prerequisites
 
@@ -40,12 +40,13 @@ Tasks are saved to `data/tasks.json` by default:
 storage:
   local:
     task-file-path: data/tasks.json
+    agent-config-file-path: data/agent-routing.json
 ```
 
-This file is created automatically on the first task write. Delete it if you want to reset local task history. Override the path if you want the store somewhere else:
+These files are created automatically on first write. Delete them if you want to reset local task history or custom agent routing. Override the paths if you want the stores somewhere else:
 
 ```powershell
-.\mvnw.cmd spring-boot:run -Dspring-boot.run.arguments="--storage.local.task-file-path=C:/Users/brian/ai-portal/tasks.json"
+.\mvnw.cmd spring-boot:run -Dspring-boot.run.arguments="--storage.local.task-file-path=C:/Users/brian/ai-portal/tasks.json --storage.local.agent-config-file-path=C:/Users/brian/ai-portal/agent-routing.json"
 ```
 
 ## Run the Application
@@ -88,6 +89,33 @@ Task type routing starts with these defaults:
 - `architecture_critique`: Principal Engineer and Security Engineer.
 - `code_review`: Principal Engineer, Test Engineer, and Security Engineer.
 - Unknown task types: Principal Engineer.
+
+### Add a Custom Agent Profile
+
+```powershell
+Invoke-RestMethod `
+  -Method Post `
+  -Uri http://localhost:8080/agent-profiles `
+  -ContentType application/json `
+  -Body '{
+    "agent_id": "release_manager",
+    "display_name": "Release Manager",
+    "system_prompt": "Focus on release sequencing, rollback readiness, and stakeholder communication."
+  }'
+```
+
+### Add a Custom Task Type Route
+
+```powershell
+Invoke-RestMethod `
+  -Method Post `
+  -Uri http://localhost:8080/task-types `
+  -ContentType application/json `
+  -Body '{
+    "task_type": "release_plan",
+    "agent_ids": ["release_manager", "test_engineer"]
+  }'
+```
 
 ## API Capabilities
 
@@ -174,6 +202,7 @@ Allowed review statuses are `approved`, `rejected`, and `needs_changes`.
 
 - Swagger-aligned REST API for task creation, listing, retrieval, execution, re-analysis, and audit.
 - Local JSON-file task persistence for developer workstations.
+- Local JSON-file agent persona and task type routing configuration.
 - Task-type-based agent routing.
 - Dedicated agent personas with role-specific system prompts.
 - Agent feedback persisted on each task with run id, role, phase, content, and timestamp.
@@ -189,9 +218,10 @@ Allowed review statuses are `approved`, `rejected`, and `needs_changes`.
 - Authentication and authorization are not implemented yet.
 - Retrieval is token-based and in-memory; production retrieval should use durable full-text or vector search.
 - Audit logs are in-memory; production audit events should be immutable and durable.
-- Agent routing is hard-coded and should eventually be configuration-driven.
+- Built-in agent routing is seeded locally, and custom routes are stored in local JSON.
 - Collaboration can multiply model calls, so production should add budgets, concurrency limits, and cancellation.
-- The local JSON store is not designed for multi-process access or production workloads.
+- The local JSON stores are not designed for multi-process access or production workloads.
+- Custom system prompts are trusted local configuration; production should add authorization, review workflow, and prompt safety controls before exposing this broadly.
 
 ## Troubleshooting
 
