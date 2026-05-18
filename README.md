@@ -14,6 +14,8 @@ Start Ollama locally and make sure the configured model is available before call
 
 Tasks are saved to `data/tasks.json` by default so local task history survives application restarts. Override `storage.local.task-file-path` to store the file somewhere else.
 
+Agent personas and task type routing are saved to `data/agent-routing.json` by default. Override `storage.local.agent-config-file-path` to store that configuration somewhere else.
+
 ## API
 
 The API contract is documented in `docs/swagger.yaml`. The implemented task endpoints are:
@@ -24,5 +26,9 @@ The API contract is documented in `docs/swagger.yaml`. The implemented task endp
 - `POST /tasks/{task_id}/execution`
 - `POST /tasks/{task_id}/analysis`
 - `POST /tasks/{task_id}/audit`
+- `GET /agent-profiles`
+- `POST /agent-profiles`
+- `GET /task-types`
+- `POST /task-types`
 
 For setup steps, example requests, supported capabilities, and troubleshooting, see `docs/local-running-and-capabilities.md`.
