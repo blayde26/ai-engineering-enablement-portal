@@ -5,6 +5,7 @@ import com.example.ai_engineering_enablement_portal.task.Api.AuditTaskRequest;
 import com.example.ai_engineering_enablement_portal.task.Api.CreateTaskRequest;
 import com.example.ai_engineering_enablement_portal.task.Api.ListTasksResponse;
 import com.example.ai_engineering_enablement_portal.task.Api.OperationResponse;
+import com.example.ai_engineering_enablement_portal.task.Api.ReanalyzeTaskRequest;
 import com.example.ai_engineering_enablement_portal.task.Api.RetrieveTaskResponse;
 import com.example.ai_engineering_enablement_portal.task.Api.TaskResponse;
 import com.example.ai_engineering_enablement_portal.task.Api.TaskSummaryResponse;
@@ -77,6 +78,15 @@ public class TaskController {
     public OperationResponse executeTask(@PathVariable("task_id") UUID taskId) {
         AiTask task = taskExecutionService.execute(taskId);
         return OperationResponse.success("Task executed successfully", task.taskId());
+    }
+
+    @PostMapping("/tasks/{task_id}/analysis")
+    public OperationResponse reanalyzeTask(
+            @PathVariable("task_id") UUID taskId,
+            @RequestBody(required = false) ReanalyzeTaskRequest request) {
+        boolean agentCollaboration = request != null && request.agentCollaborationEnabled();
+        AiTask task = taskExecutionService.reanalyze(taskId, agentCollaboration);
+        return OperationResponse.success("Task re-analysis completed successfully", task.taskId());
     }
 
     @PostMapping("/tasks/{task_id}/audit")
