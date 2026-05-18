@@ -4,7 +4,7 @@
 
 AI Engineering Enablement Portal is a Spring Boot application for submitting engineering tasks and routing them through a structured AI review workflow. It supports task creation, task retrieval, execution through local AI agent profiles, lightweight retrieval, deterministic evaluation, agent collaboration, human review gates, and audit logging.
 
-The current implementation is intended for local development and early product validation. Task state, agent feedback, retrieval context, and audit events are stored in memory and are reset when the application restarts.
+The current implementation is intended for local development and early product validation. Task state, agent feedback, results, and human reviews are saved to a local JSON file so they survive application restarts. Retrieval context and audit events remain in memory for now.
 
 ## Prerequisites
 
@@ -30,6 +30,22 @@ ai:
     base-url: http://localhost:11434
     model: llama3.1
     timeout-seconds: 60
+```
+
+## Local Persistence
+
+Tasks are saved to `data/tasks.json` by default:
+
+```yaml
+storage:
+  local:
+    task-file-path: data/tasks.json
+```
+
+This file is created automatically on the first task write. Delete it if you want to reset local task history. Override the path if you want the store somewhere else:
+
+```powershell
+.\mvnw.cmd spring-boot:run -Dspring-boot.run.arguments="--storage.local.task-file-path=C:/Users/brian/ai-portal/tasks.json"
 ```
 
 ## Run the Application
@@ -157,7 +173,7 @@ Allowed review statuses are `approved`, `rejected`, and `needs_changes`.
 ## Current Capabilities
 
 - Swagger-aligned REST API for task creation, listing, retrieval, execution, re-analysis, and audit.
-- In-memory task persistence for local development.
+- Local JSON-file task persistence for developer workstations.
 - Task-type-based agent routing.
 - Dedicated agent personas with role-specific system prompts.
 - Agent feedback persisted on each task with run id, role, phase, content, and timestamp.
@@ -169,12 +185,13 @@ Allowed review statuses are `approved`, `rejected`, and `needs_changes`.
 
 ## Known Limitations
 
-- Data is not durable across application restarts.
+- Retrieval context and audit events are not durable across application restarts.
 - Authentication and authorization are not implemented yet.
 - Retrieval is token-based and in-memory; production retrieval should use durable full-text or vector search.
 - Audit logs are in-memory; production audit events should be immutable and durable.
 - Agent routing is hard-coded and should eventually be configuration-driven.
 - Collaboration can multiply model calls, so production should add budgets, concurrency limits, and cancellation.
+- The local JSON store is not designed for multi-process access or production workloads.
 
 ## Troubleshooting
 
