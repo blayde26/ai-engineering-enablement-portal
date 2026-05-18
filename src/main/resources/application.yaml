@@ -6,6 +6,9 @@ ai:
     base-url: http://localhost:11434
     model: llama3.1
     timeout-seconds: 60
+storage:
+  local:
+    task-file-path: data/tasks.json
 management:
   endpoint:
     health:
